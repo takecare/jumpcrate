@@ -24,7 +24,7 @@ const gameConfig = {
     width: width,
     height: height / 24,
     spacing: height / 24 * 4,
-    count: 8
+    count: 100
   }
 }
 

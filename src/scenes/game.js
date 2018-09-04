@@ -14,8 +14,6 @@ export class Game extends Phaser.Scene {
   }
 
   preload() {
-    console.log('Game: preload()')
-    // TODO setup input
     this.input.on('pointerdown', () => this._jumpOrDash())
   }
 
@@ -26,6 +24,10 @@ export class Game extends Phaser.Scene {
     this.floors = this._createFloors(this.options.floor)
     this.obstacles = this.add.group() // TODO...
     this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
+  }
+
+  _createCamera() {
+    //this.camera = this.cameras.add(0, 0, 400, 300).setZoom(0.5)
   }
 
   _createPlayer(options = this.options.player) {
@@ -61,6 +63,8 @@ export class Game extends Phaser.Scene {
     floor.body.immovable = true
     floor.body.moves = false
 
+    this.add.text(2, options.spacing * (position + 1) - 2, 'floor ' + position, { fill: '#0f0' }) // DEBUG
+
     return floor
   }
 
@@ -72,9 +76,8 @@ export class Game extends Phaser.Scene {
       this._moveDownFromLeftSide()
     }
 
-    // DEBUG:
-    if (this.player.y >= this.sys.game.config.height) {
-      this.player.y = 0
+    if (this.player.y >= this.sys.game.config.height) { // DEBUG
+      //this.player.y = 0
     }
 
     // TODO collide square with obstacles
@@ -85,6 +88,8 @@ export class Game extends Phaser.Scene {
     this.player.y += options.floor.spacing
     this.player.x = this.sys.game.config.width
     this.player.body.setVelocityX(player.body.velocity.x * -1)
+
+    this.cameras.main.scrollY += 50
   }
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
@@ -92,6 +97,8 @@ export class Game extends Phaser.Scene {
     this.player.y += options.floor.spacing
     this.player.x = 0
     this.player.body.setVelocityX(player.body.velocity.x * -1)
+
+    this.cameras.main.scrollY += 50
   }
 
   _jumpOrDash(player = this.player, options = this.options.player) {
