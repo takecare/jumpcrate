@@ -1,9 +1,7 @@
 export class Boot extends Phaser.Scene {
 
   constructor() {
-    super({
-        key: 'Boot'
-    });
+    super({ key: 'Boot' });
   }
 
   preload() {

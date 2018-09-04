@@ -9,9 +9,6 @@ export class Title extends Phaser.Scene {
 
   preload() {
     console.log(`Title: preload()`)
-    this.input.on('pointerdown', event => {
-      console.log(event)
-    })
   }
 
   create() {
@@ -21,9 +18,7 @@ export class Title extends Phaser.Scene {
 
   update() {
     if (this.startKey.isDown) {
-      this.scene.stop('Title')
-      this.scene.launch('Game')
-      this.scene.bringToTop()
+      this.scene.start('Game')
     }
   }
 }
