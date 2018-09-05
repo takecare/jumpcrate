@@ -18,6 +18,7 @@ export class Game extends Phaser.Scene {
     this.input.keyboard.on('keydown_Q', () => this._DEBUG_moveToTop())
     this.input.keyboard.on('keydown_O', () => this._DEBUG_speedUpBy(10))
     this.input.keyboard.on('keydown_L', () => this._DEBUG_speedUpBy(-10))
+    this.input.keyboard.on('keydown_C', () => this._DEBUG_print())
   }
 
   _DEBUG_moveToTop() {
@@ -32,6 +33,11 @@ export class Game extends Phaser.Scene {
       increment *= -1
     }
     this.player.body.setVelocityX(this.player.body.velocity.x + increment)
+  }
+
+  _DEBUG_print() {
+    console.log(this.cameras.main)
+    console.log(this.player)
   }
 
   create() {
@@ -93,11 +99,7 @@ export class Game extends Phaser.Scene {
       this._moveDownFromLeftSide()
     }
 
-    if (this.currentFloor < 2) {
-      this.cameras.main.scrollY += 0.5
-    } else {
-      this.cameras.main.scrollY += 1
-    }
+    this._updateCamera()
 
     // TODO collide square with obstacles
   }
@@ -143,5 +145,13 @@ export class Game extends Phaser.Scene {
 
   _playerHitsFloor(player = this.player) {
     player.isDashing = false
+  }
+
+  _updateCamera() {
+    if (this.currentFloor < 2) {
+      this.cameras.main.scrollY += 0.5
+    } else {
+      this.cameras.main.scrollY += 1
+    }
   }
 }
