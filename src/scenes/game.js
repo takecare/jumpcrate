@@ -15,6 +15,23 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.input.on('pointerdown', () => this._jumpOrDash())
+    this.input.keyboard.on('keydown_Q', () => this._DEBUG_moveToTop())
+    this.input.keyboard.on('keydown_O', () => this._DEBUG_speedUpBy(10))
+    this.input.keyboard.on('keydown_L', () => this._DEBUG_speedUpBy(-10))
+  }
+
+  _DEBUG_moveToTop() {
+    this.player.y = 0
+    this.player.x = 0
+    this.currentFloor = 0
+    this.cameras.main.scrollY = 0
+  }
+
+  _DEBUG_speedUpBy(increment = 10) {
+    if (this.player.body.velocity.x < 0) {
+      increment *= -1
+    }
+    this.player.body.setVelocityX(this.player.body.velocity.x + increment)
   }
 
   create() {
@@ -76,8 +93,10 @@ export class Game extends Phaser.Scene {
       this._moveDownFromLeftSide()
     }
 
-    if (this.player.y >= this.sys.game.config.height) { // DEBUG
-      //this.player.y = 0
+    if (this.currentFloor < 2) {
+      this.cameras.main.scrollY += 0.5
+    } else {
+      this.cameras.main.scrollY += 1
     }
 
     // TODO collide square with obstacles
@@ -88,8 +107,6 @@ export class Game extends Phaser.Scene {
     this.player.y += options.floor.spacing
     this.player.x = this.sys.game.config.width
     this.player.body.setVelocityX(player.body.velocity.x * -1)
-
-    this.cameras.main.scrollY += 50
   }
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
@@ -97,8 +114,6 @@ export class Game extends Phaser.Scene {
     this.player.y += options.floor.spacing
     this.player.x = 0
     this.player.body.setVelocityX(player.body.velocity.x * -1)
-
-    this.cameras.main.scrollY += 50
   }
 
   _jumpOrDash(player = this.player, options = this.options.player) {
