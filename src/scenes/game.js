@@ -147,11 +147,19 @@ export class Game extends Phaser.Scene {
     player.isDashing = false
   }
 
-  _updateCamera() {
-    if (this.currentFloor < 2) {
-      this.cameras.main.scrollY += 0.5
+  _updateCamera(player = this.player, cameras = this.cameras) {
+    // TODO need player's position RELATIVE to camera
+    let s = cameras.main.scrollY - player.y
+    if (s < 0) s *= -1
+    if (s < cameras.main.centerY) {
+      console.log('slow')
+      cameras.main.scrollY += 0.5
+    } else if (s >= cameras.main.centerY && s <= cameras.main.centerY + (cameras.main.height / 3)) {
+      console.log('med')
+      cameras.main.scrollY += 1
     } else {
-      this.cameras.main.scrollY += 1
+      console.log('fast')
+      cameras.main.scrollY += 2
     }
   }
 }
