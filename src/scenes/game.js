@@ -47,6 +47,10 @@ export class Game extends Phaser.Scene {
     this.floors = this._createFloors(this.options.floor)
     this.obstacles = this.add.group() // TODO...
     this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
+
+    // this.cameras.main.setBounds(0, 0, this.sys.game.config.width, Number.MAX_SAFE_INTEGER)
+    // this.cameras.main.setDeadzone(this.sys.game.config.width, this.sys.game.config.height)
+    // this.cameras.main.startFollow(this.player, true)
   }
 
   _createCamera() {
