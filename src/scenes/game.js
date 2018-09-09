@@ -43,18 +43,13 @@ export class Game extends Phaser.Scene {
   create() {
     this.add.text(10, 10, 'game', { fill: '#0f0' })
 
+    this.graphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 }, fillStyle: { color: 0xff00ff } });
+    this.circle = new Phaser.Geom.Circle(this.sys.game.config.width - 10, 0, 10)
+
     this.player = this._createPlayer(this.options.player)
     this.floors = this._createFloors(this.options.floor)
     this.obstacles = this.add.group() // TODO...
     this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
-
-    // this.cameras.main.setBounds(0, 0, this.sys.game.config.width, Number.MAX_SAFE_INTEGER)
-    // this.cameras.main.setDeadzone(this.sys.game.config.width, this.sys.game.config.height)
-    // this.cameras.main.startFollow(this.player, true)
-  }
-
-  _createCamera() {
-    //this.camera = this.cameras.add(0, 0, 400, 300).setZoom(0.5)
   }
 
   _createPlayer(options = this.options.player) {
@@ -152,17 +147,20 @@ export class Game extends Phaser.Scene {
   }
 
   _updateCamera(player = this.player, cameras = this.cameras) {
+    // 1. define area in which if the player is in, the camera needs to scroll
+
+    // console.log(cameras.main.scrollY, player.y, player.y - cameras.main.scrollY)
+    // this.circle.y = player.y - cameras.main.scrollY
+    // this.graphics.strokeCircleShape(this.circle);
+
     // TODO need player's position RELATIVE to camera
     let s = cameras.main.scrollY - player.y
     if (s < 0) s *= -1
     if (s < cameras.main.centerY) {
-      console.log('slow')
       cameras.main.scrollY += 0.5
     } else if (s >= cameras.main.centerY && s <= cameras.main.centerY + (cameras.main.height / 3)) {
-      console.log('med')
       cameras.main.scrollY += 1
     } else {
-      console.log('fast')
       cameras.main.scrollY += 2
     }
   }
