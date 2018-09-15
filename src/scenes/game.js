@@ -71,10 +71,10 @@ export class Game extends Phaser.Scene {
   }
 
   _createFloor(position, options = this.options.floor) {
-    // FIXME why (options.width * 2)? it fails w/o *2 idk why
     // adding playerWidth*2 to make sure the player does not fall
     const floorWidth = options.width * 1 + (this.options.player.size * 2)
 
+    // FIXME tile sprite is being placed outside of the screen! why?
     const floor = this.add.tileSprite(
       0, // this.sys.game.config.width
       options.spacing * (position + 1),
@@ -82,6 +82,7 @@ export class Game extends Phaser.Scene {
       options.height,
       'floor'
     )
+    floor.setDisplayOrigin()
 
     this.physics.add.existing(floor, true)
     floor.body.immovable = true
@@ -103,7 +104,7 @@ export class Game extends Phaser.Scene {
     this._updateCamera()
 
     if (this._inTheAir()) {
-      console.log(`${this.player.body.speed}`)
+      //console.log(`${this.player.body.speed}`)
     }
 
     // TODO collide square with obstacles
