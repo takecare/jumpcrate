@@ -1,3 +1,5 @@
+const DEBUG_TOGGLED_EVENT = 'debugToggled'
+
 export class Game extends Phaser.Scene {
 
   constructor(props) {
@@ -15,10 +17,11 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.input.on('pointerdown', () => this._jumpOrDash())
+
     this.input.keyboard.on('keydown_R', () => this._DEBUG_moveToTop())
     this.input.keyboard.on('keydown_O', () => this._DEBUG_speedUpBy(10))
     this.input.keyboard.on('keydown_L', () => this._DEBUG_speedUpBy(-10))
-    this.input.keyboard.on('keydown_C', () => this._DEBUG_print())
+    this.input.keyboard.on('keydown_D', () => this.events.emit(DEBUG_TOGGLED_EVENT))
   }
 
   _DEBUG_moveToTop() {
@@ -35,16 +38,12 @@ export class Game extends Phaser.Scene {
     this.player.body.setVelocityX(this.player.body.velocity.x + increment)
   }
 
-  _DEBUG_print() {
-    console.log(this.cameras.main)
-    console.log(this.player)
-  }
-
   create() {
-    this.add.text(10, 10, 'game', { fill: '#0f0' })
+    this.events.on(DEBUG_TOGGLED_EVENT, this._debugToggled, this);
 
     this.graphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 }, fillStyle: { color: 0xff00ff } });
-    this.circle = new Phaser.Geom.Circle(this.sys.game.config.width - 10, 0, 10)
+    this.debugCircle = new Phaser.Geom.Circle(0, 0, this.sys.game.config.width / 10)
+    this.debugRect = new Phaser.Geom.Rectangle(0, 0, this.sys.game.config.width, this.sys.game.config.height)
 
     this.player = this._createPlayer(this.options.player)
     this.floors = this._createFloors(this.options.floor)
@@ -74,10 +73,10 @@ export class Game extends Phaser.Scene {
   _createFloor(position, options = this.options.floor) {
     // FIXME why (options.width * 2)? it fails w/o *2 idk why
     // adding playerWidth*2 to make sure the player does not fall
-    const floorWidth = options.width * 2 + (this.options.player.size * 2)
+    const floorWidth = options.width * 1 + (this.options.player.size * 2)
 
     const floor = this.add.tileSprite(
-      -this.options.player.size,
+      0, // this.sys.game.config.width
       options.spacing * (position + 1),
       floorWidth,
       options.height,
@@ -102,6 +101,10 @@ export class Game extends Phaser.Scene {
     }
 
     this._updateCamera()
+
+    if (this._inTheAir()) {
+      console.log(`${this.player.body.speed}`)
+    }
 
     // TODO collide square with obstacles
   }
@@ -162,10 +165,6 @@ export class Game extends Phaser.Scene {
       playerPosY *= -1
     }
 
-    this.graphics.clear()
-    this.circle.setPosition(cameras.main.centerX, player.y - 100)
-    this.graphics.strokeCircleShape(this.circle)
-
     if (playerPosY < cameras.main.centerY) {
       cameras.main.scrollY += 0.5
     } else if (playerPosY >= cameras.main.centerY && playerPosY <= cameras.main.centerY + (cameras.main.height / 3)) {
@@ -173,5 +172,35 @@ export class Game extends Phaser.Scene {
     } else {
       cameras.main.scrollY += 2
     }
+
+    if (this._DEBUG_mode) {
+      this._debugDraw()
+    }
+  }
+
+  _debugToggled() {
+    this._DEBUG_mode = !this._DEBUG_mode
+
+    if (!this._DEBUG_mode) {
+      this.cameras.main.zoom = 1
+      this.graphics.clear()
+      return
+    }
+
+    this.cameras.main.zoom = 0.5
+  }
+
+  _debugDraw(
+    player = this.player,
+    cameras = this.cameras,
+    graphics = this.graphics,
+    debugCircle = this.debugCircle,
+    debugRect = this.debugRect
+  ) {
+    graphics.clear()
+    debugCircle.setPosition(cameras.main.centerX, player.y - 100)
+    graphics.strokeCircleShape(debugCircle)
+    debugRect.setPosition(0, cameras.main.scrollY)
+    graphics.strokeRectShape(debugRect)
   }
 }
