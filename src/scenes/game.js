@@ -42,7 +42,7 @@ export class Game extends Phaser.Scene {
     this.events.on(DEBUG_TOGGLED_EVENT, this._debugToggled, this);
 
     this.graphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 }, fillStyle: { color: 0xff00ff } });
-    this.debugCircle = new Phaser.Geom.Circle(0, 0, this.sys.game.config.width / 10)
+    this.debugCircle = new Phaser.Geom.Circle(0, 0, this.options.player.sized)
     this.debugRect = new Phaser.Geom.Rectangle(0, 0, this.sys.game.config.width, this.sys.game.config.height)
 
     this.player = this._createPlayer(this.options.player)
@@ -71,18 +71,15 @@ export class Game extends Phaser.Scene {
   }
 
   _createFloor(position, options = this.options.floor) {
-    // adding playerWidth*2 to make sure the player does not fall
-    const floorWidth = options.width * 1 + (this.options.player.size * 2)
-
-    // FIXME tile sprite is being placed outside of the screen! why?
+    const floorWidth = options.width + (this.options.player.size * 4)
     const floor = this.add.tileSprite(
-      0, // this.sys.game.config.width
+      -this.options.player.size * 2,
       options.spacing * (position + 1),
       floorWidth,
       options.height,
       'floor'
     )
-    floor.setDisplayOrigin()
+    floor.setDisplayOrigin(0, 0)
 
     this.physics.add.existing(floor, true)
     floor.body.immovable = true
@@ -199,7 +196,7 @@ export class Game extends Phaser.Scene {
     debugRect = this.debugRect
   ) {
     graphics.clear()
-    debugCircle.setPosition(cameras.main.centerX, player.y - 100)
+    debugCircle.setPosition(cameras.main.centerX, player.y)
     graphics.strokeCircleShape(debugCircle)
     debugRect.setPosition(0, cameras.main.scrollY)
     graphics.strokeRectShape(debugRect)
