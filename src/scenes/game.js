@@ -60,6 +60,9 @@ export class Game extends Phaser.Scene {
     return square
   }
 
+  // TODO 1. decide when floor is out of the upper screen bound and put it into the pool
+  // TODO 2.
+
   _createFloors(options = this.options.floor) {
     const group = this.physics.add.staticGroup()
     for (let floorNum = 0; floorNum < options.count; floorNum++) {
@@ -104,6 +107,8 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromRightSide(options = this.options, player = this.player) {
+    console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
+
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = this.sys.game.config.width
@@ -111,6 +116,8 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
+    console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
+
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = 0
@@ -149,16 +156,12 @@ export class Game extends Phaser.Scene {
   _updateCamera(player = this.player, cameras = this.cameras) {
     // 1. define area in which if the player is in, the camera needs to scroll
 
-    // console.log(cameras.main.scrollY, player.y, player.y - cameras.main.scrollY)
-    // this.circle.y = player.y - cameras.main.scrollY
-    // this.graphics.strokeCircleShape(this.circle);
-
     // TODO need player's position RELATIVE to camera
-    let s = cameras.main.scrollY - player.y
-    if (s < 0) s *= -1
-    if (s < cameras.main.centerY) {
+    let playerPosY = cameras.main.scrollY - player.y
+    if (playerPosY < 0) playerPosY *= -1
+    if (playerPosY < cameras.main.centerY) {
       cameras.main.scrollY += 0.5
-    } else if (s >= cameras.main.centerY && s <= cameras.main.centerY + (cameras.main.height / 3)) {
+    } else if (playerPosY >= cameras.main.centerY && playerPosY <= cameras.main.centerY + (cameras.main.height / 3)) {
       cameras.main.scrollY += 1
     } else {
       cameras.main.scrollY += 2
