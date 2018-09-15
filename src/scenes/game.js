@@ -15,7 +15,7 @@ export class Game extends Phaser.Scene {
 
   preload() {
     this.input.on('pointerdown', () => this._jumpOrDash())
-    this.input.keyboard.on('keydown_Q', () => this._DEBUG_moveToTop())
+    this.input.keyboard.on('keydown_R', () => this._DEBUG_moveToTop())
     this.input.keyboard.on('keydown_O', () => this._DEBUG_speedUpBy(10))
     this.input.keyboard.on('keydown_L', () => this._DEBUG_speedUpBy(-10))
     this.input.keyboard.on('keydown_C', () => this._DEBUG_print())
@@ -107,7 +107,7 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromRightSide(options = this.options, player = this.player) {
-    console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
+    // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
 
     this.currentFloor += 1
     this.player.y += options.floor.spacing
@@ -116,7 +116,7 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
-    console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
+    // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
 
     this.currentFloor += 1
     this.player.y += options.floor.spacing
@@ -155,10 +155,17 @@ export class Game extends Phaser.Scene {
 
   _updateCamera(player = this.player, cameras = this.cameras) {
     // 1. define area in which if the player is in, the camera needs to scroll
-
     // TODO need player's position RELATIVE to camera
+
     let playerPosY = cameras.main.scrollY - player.y
-    if (playerPosY < 0) playerPosY *= -1
+    if (playerPosY < 0) {
+      playerPosY *= -1
+    }
+
+    this.graphics.clear()
+    this.circle.setPosition(cameras.main.centerX, player.y - 100)
+    this.graphics.strokeCircleShape(this.circle)
+
     if (playerPosY < cameras.main.centerY) {
       cameras.main.scrollY += 0.5
     } else if (playerPosY >= cameras.main.centerY && playerPosY <= cameras.main.centerY + (cameras.main.height / 3)) {

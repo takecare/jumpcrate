@@ -17,7 +17,7 @@ export class Title extends Phaser.Scene {
   create() {
     this.titleText = this.add.text(10, 10, 'title', { fill: '#0f0' })
     this.startKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X)
-    this.startTimer = this.time.delayedCall(3000, this.start, [], this);
+    this.startTimer = this.time.delayedCall(1000, this.start, [], this);
   }
 
   start() {
