@@ -1,5 +1,7 @@
 const DEBUG_TOGGLED_EVENT = 'debugToggled'
 
+const LERP_Y = 0.03
+
 export class Game extends Phaser.Scene {
 
   constructor(props) {
@@ -13,6 +15,8 @@ export class Game extends Phaser.Scene {
 
   init(options) {
     this.options = options
+    this.gameWidth = this.sys.game.config.width
+    this.gameHeight = this.sys.game.config.height
   }
 
   preload() {
@@ -24,14 +28,14 @@ export class Game extends Phaser.Scene {
     this.input.keyboard.on('keydown_D', () => this.events.emit(DEBUG_TOGGLED_EVENT))
   }
 
-  _DEBUG_moveToTop() {
+  _DEBUG_moveToTop() { // TODO move to class?
     this.player.y = 0
     this.player.x = 0
     this.currentFloor = 0
     this.cameras.main.scrollY = 0
   }
 
-  _DEBUG_speedUpBy(increment = 10) {
+  _DEBUG_speedUpBy(increment = 10) { // TODO move to class?
     if (this.player.body.velocity.x < 0) {
       increment *= -1
     }
@@ -43,12 +47,15 @@ export class Game extends Phaser.Scene {
 
     this.graphics = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 }, fillStyle: { color: 0xff00ff } });
     this.debugCircle = new Phaser.Geom.Circle(0, 0, this.options.player.sized)
-    this.debugRect = new Phaser.Geom.Rectangle(0, 0, this.sys.game.config.width, this.sys.game.config.height)
+    this.debugRect = new Phaser.Geom.Rectangle(0, 0, this.gameWidth, this.gameHeight)
 
     this.player = this._createPlayer(this.options.player)
     this.floors = this._createFloors(this.options.floor)
-    this.obstacles = this.add.group() // TODO...
+    this.obstacles = this.add.group() // TODO obstacles/enemies...
     this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
+
+    this.cameras.main.setBounds(0, 0, this.gameWidth)
+    this.cameras.main.startFollow(this.player, true, 0, LERP_Y, 0, -100) // TODO calcualate y offset
   }
 
   _createPlayer(options = this.options.player) {
@@ -58,9 +65,6 @@ export class Game extends Phaser.Scene {
     square.isDashing = false
     return square
   }
-
-  // TODO 1. decide when floor is out of the upper screen bound and put it into the pool
-  // TODO 2.
 
   _createFloors(options = this.options.floor) {
     const group = this.physics.add.staticGroup()
@@ -90,7 +94,7 @@ export class Game extends Phaser.Scene {
     return floor
   }
 
-  update() {
+  update(time, delta) {
     const playerWidth = this.player.body.width
     if (this.player.x > this.sys.game.config.width + playerWidth) {
       this._moveDownFromRightSide()
@@ -98,7 +102,7 @@ export class Game extends Phaser.Scene {
       this._moveDownFromLeftSide()
     }
 
-    this._updateCamera()
+    // this._updateCamera()
 
     if (this._inTheAir()) {
       //console.log(`${this.player.body.speed}`)
@@ -109,7 +113,6 @@ export class Game extends Phaser.Scene {
 
   _moveDownFromRightSide(options = this.options, player = this.player) {
     // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
-
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = this.sys.game.config.width
@@ -118,7 +121,6 @@ export class Game extends Phaser.Scene {
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
     // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
-
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = 0
@@ -126,10 +128,11 @@ export class Game extends Phaser.Scene {
   }
 
   _jumpOrDash(player = this.player, options = this.options.player) {
+    this.cameras.main.setLerp(0, 0.02)
     if (this._inTheAir() && !player.isDashing) {
       this._dash()
-    } else if (player.body.touching.down) {
-      player.setVelocityY(-250)
+    } else if (player.body.touching.down) { // jump
+      player.setVelocityY(-250) // TODO pass via opts
     }
   }
 
@@ -151,6 +154,7 @@ export class Game extends Phaser.Scene {
   }
 
   _playerHitsFloor(player = this.player) {
+    this.cameras.main.setLerp(0, LERP_Y)
     player.isDashing = false
   }
 
