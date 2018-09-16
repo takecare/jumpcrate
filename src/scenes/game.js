@@ -1,6 +1,7 @@
 const DEBUG_TOGGLED_EVENT = 'debugToggled'
 
-const LERP_Y = 0.03
+const LERP_Y = 0.04
+const NO_LERP = 0
 
 export class Game extends Phaser.Scene {
 
@@ -54,8 +55,8 @@ export class Game extends Phaser.Scene {
     this.obstacles = this.add.group() // TODO obstacles/enemies...
     this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
 
-    this.cameras.main.setBounds(0, 0, this.gameWidth)
-    this.cameras.main.startFollow(this.player, true, 0, LERP_Y, 0, -100) // TODO calcualate y offset
+    this.cameras.main.setBounds(0, 0, this.gameWidth) // no y bounds because we move infinitely towards the bottom
+    this.cameras.main.startFollow(this.player, true, NO_LERP, LERP_Y, 0, this.options.floor.height + this.options.floor.spacing * -1)
   }
 
   _createPlayer(options = this.options.player) {
@@ -103,6 +104,9 @@ export class Game extends Phaser.Scene {
     }
 
     // this._updateCamera()
+    if (this._DEBUG_mode) {
+      this._debugDraw()
+    }
 
     if (this._inTheAir()) {
       //console.log(`${this.player.body.speed}`)
@@ -128,7 +132,7 @@ export class Game extends Phaser.Scene {
   }
 
   _jumpOrDash(player = this.player, options = this.options.player) {
-    this.cameras.main.setLerp(0, 0.02)
+    this.cameras.main.setLerp(0, 0)
     if (this._inTheAir() && !player.isDashing) {
       this._dash()
     } else if (player.body.touching.down) { // jump
@@ -173,10 +177,6 @@ export class Game extends Phaser.Scene {
       cameras.main.scrollY += 1
     } else {
       cameras.main.scrollY += 2
-    }
-
-    if (this._DEBUG_mode) {
-      this._debugDraw()
     }
   }
 
