@@ -11,7 +11,7 @@ export class Title extends Phaser.Scene {
   }
 
   preload() {
-    console.log(`Title: preload()`)
+    //
   }
 
   create() {
