@@ -1,5 +1,3 @@
-import { runInThisContext } from "vm";
-
 const DEBUG_TOGGLED_EVENT = 'debugToggled'
 
 const LERP_Y = 0.04
@@ -79,11 +77,61 @@ class Debugger {
   }
 }
 
+class FloorPool {
+
+  constructor(scene, capacity) {
+    this.scene = scene
+    this.capacity = capacity
+    this.visibleFloors = scene.physics.add.staticGroup()
+    this.freeFloors = sc
+    for (let i = 0; i < capacity; i++) {
+      const floor = new Floor(scene) //scene.add.tileSprite(0, 0, 0, 0, 'floor')
+
+      floor.setActive(false)
+      this.visibleFloors.add(floor) //this.visibleFloors.push(f)
+    }
+  }
+
+  update(time, delta) {
+    this.visibleFloors.getChildren().forEach(floor => floor.update(time, delta))
+
+    if (this.scene.cameras.main.scrollY)
+
+  }
+
+  get() {
+    let freedFloor = this.floors.getFirstDead()
+    if (freedFloor) {
+      console.log('got free floor')
+      return freedFloor
+    } else {
+      console.error('BOOM')
+    }
+  }
+}
+
+class Floor extends Phaser.GameObjects.TileSprite {
+
+  constructor(...args) {
+    super(...args)
+  }
+
+  // TODO what methods make sense here?
+
+  update(time, delta) {
+    // console.log(`floor update: ${time}, ${delta}`)
+    // console.log(this.y, this.scene.cameras.main.scrollY)
+    if (this.y < this.scene.cameras.main.scrollY) {
+      this.setActive(false)
+      this.setVisible(false)
+    }
+  }
+}
+
 export class Game extends Phaser.Scene {
 
   constructor(props) {
     super(Object.assign(props, { key: 'Game' }))
-
     this.player = null
     this.floors = null
     this.currentFloor = 0
@@ -99,15 +147,25 @@ export class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.debugger.init()
+    // this.debugger.init()
     this.input.on('pointerdown', () => this._jumpOrDash())
   }
 
   create() {
+    // this.teste = this.add.group({
+    //   classType: Floor,
+    //   maxSize: this.options.floor.count, // TODO change to smaller limit
+    //   runChildUpdate: true,
+    //   createCallback: (item) => {
+    //     //console.log('log', item)
+    //     // item.setTexture('floor')
+    //   }
+    // })
+
     this.player = this._createPlayer(this.options.player)
     this.floors = this._createFloors(this.options.floor)
     this.obstacles = this.add.group() // TODO obstacles/enemies...
-    this.physics.add.collider(this.player, this.floors, () => this._playerHitsFloor())
+    this.physics.add.collider(this.player, this.floors.floors, () => this._playerHitsFloor())
 
     this.cameras.main.setBounds(0, 0, this.gameWidth) // no y bounds because we move infinitely towards the bottom
     this.cameras.main.startFollow(this.player, true, NO_LERP, LERP_Y, 0, this.options.floor.height + this.options.floor.spacing * -1)
@@ -122,34 +180,31 @@ export class Game extends Phaser.Scene {
   }
 
   _createFloors(options = this.options.floor) {
-    const group = this.physics.add.staticGroup()
-    for (let floorNum = 0; floorNum < options.count; floorNum++) {
-      group.add(this._createFloor(floorNum, options), true)
+    const pool = new FloorPool(this, 20)
+    const floors = pool.floors.getChildren()
+
+    for (let position = 0; position < floors.length; position++) {
+      const floor = floors[position]
+      const floorWidth = options.width + (this.options.player.size * 4)
+
+      floor.setPosition(-this.options.player.size * 2, options.spacing * (position + 1))
+      floor.setSize(floorWidth, options.height)
+      floor.setDisplayOrigin(0, 0)
+      floor.setTexture('floor')
+
+      this.physics.add.existing(floor, true)
+      floor.body.immovable = true
+      floor.body.moves = false
+
+      this.add.text(2, options.spacing * (position + 1) - 2, `floor ${position}`, { fill: '#0f0' }) // DEBUG
     }
-    return group
-  }
 
-  _createFloor(position, options = this.options.floor) {
-    const floorWidth = options.width + (this.options.player.size * 4)
-    const floor = this.add.tileSprite(
-      -this.options.player.size * 2,
-      options.spacing * (position + 1),
-      floorWidth,
-      options.height,
-      'floor'
-    )
-    floor.setDisplayOrigin(0, 0)
-
-    this.physics.add.existing(floor, true)
-    floor.body.immovable = true
-    floor.body.moves = false
-
-    this.add.text(2, options.spacing * (position + 1) - 2, 'floor ' + position, { fill: '#0f0' }) // DEBUG
-
-    return floor
+    return pool
   }
 
   update(time, delta) {
+    this.floors.update(time, delta)
+
     const playerWidth = this.player.body.width
     if (this.player.x > this.sys.game.config.width + playerWidth) {
       this._moveDownFromRightSide()
@@ -161,7 +216,6 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromRightSide(options = this.options, player = this.player) {
-    // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = this.sys.game.config.width
@@ -169,7 +223,6 @@ export class Game extends Phaser.Scene {
   }
 
   _moveDownFromLeftSide(options = this.options, player = this.player) {
-    // console.log(`left floor ${this.currentFloor}`, this.cameras.main.scrollY - this.floors.getChildren()[this.currentFloor].y)
     this.currentFloor += 1
     this.player.y += options.floor.spacing
     this.player.x = 0

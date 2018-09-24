@@ -5,7 +5,6 @@ export class Boot extends Phaser.Scene {
   }
 
   preload() {
-    console.log('Boot: preload()')
     const progress = this.add.graphics()
 
     this.load.on('progress', (value) => {
